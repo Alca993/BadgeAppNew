@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Modifica Orari Lavorativi</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e1e2f, #3a3a5c, #202025, #2d2d3f);
+            background-size: 400% 400%;
+            animation: gradientAnimation 10s ease infinite;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 900px;
+            background-color: #262626;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+            padding: 20px;
+        }
+
+        h1, h3 {
+            color: #f0f0f0;
+        }
+
+        .table {
+            color: #f0f0f0;
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: #2e2e3e;
+        }
+
+        .table-striped tbody tr:nth-of-type(even) {
+            background-color: #262636;
+        }
+
+        .table-bordered th {
+            background-color: #3a3a5c;
+        }
+
+        .btn-warning {
+            background-color: #e5a645;
+            border-color: #e5a645;
+        }
+
+        .btn-warning:hover {
+            background-color: #d4923c;
+            border-color: #d4923c;
+        }
+
+        .btn-danger {
+            background-color: #e74c3c;
+            border-color: #e74c3c;
+        }
+
+        .btn-danger:hover {
+            background-color: #d62c1c;
+            border-color: #d62c1c;
+        }
+
+        .btn-secondary {
+            background-color: #555;
+            border-color: #555;
+        }
+
+        .btn-secondary:hover {
+            background-color: #666;
+            border-color: #666;
+        }
+    </style>
+</head>
+<body class="bg-light d-flex align-items-center justify-content-center vh-100">
+<div class="container">
+    <h1 class="text-center mb-4">Modifica Orari Lavorativi</h1>
+
+    <!-- Form -->
+    <form action="#" th:action="@{/edit/{id}(id=${workHoursForm.id})}" method="post" class="needs-validation" novalidate>
+        <input type="hidden" name="id" th:value="${workHoursForm.id}">
+
+        <div class="mb-3">
+            <label for="entryTime" class="form-label">Ora di ingresso:</label>
+            <input type="time" name="entryTime" th:value="${workHoursForm.entryTime}" class="form-control" id="entryTime" required>
+            <div class="invalid-feedback">
+                Inserisci un orario di ingresso valido.
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="exitTime" class="form-label">Ora di uscita:</label>
+            <input type="time" name="exitTime" th:value="${workHoursForm.exitTime}" class="form-control" id="exitTime" required>
+            <div class="invalid-feedback">
+                Inserisci un orario di uscita valido.
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between">
+            <a th:href="@{/workhours}" class="btn btn-secondary">Indietro</a>
+            <button type="submit" class="btn btn-primary">Salva Modifiche</button>
+        </div>
+    </form>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Script per la validazione -->
+<script>
+    (function () {
+        'use strict';
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+</script>
+</body>
+</html>

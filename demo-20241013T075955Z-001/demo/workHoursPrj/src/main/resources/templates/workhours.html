@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymelaef.org">
+<head>
+    <title>Gestione ore lavorative</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e1e2f, #3a3a5c, #202025, #2d2d3f);
+            background-size: 400% 400%;
+            animation: gradientAnimation 10s ease infinite;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 700px;
+            background-color: #262626;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+            padding: 20px;
+        }
+
+        h2, h3 {
+            color: #f0f0f0;
+        }
+
+        .table {
+            color: #f0f0f0;
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: #2e2e3e;
+        }
+
+        .table-striped tbody tr:nth-of-type(even) {
+            background-color: #262636;
+        }
+
+        .table-dark th {
+            background-color: #3a3a5c;
+        }
+
+        .btn-primary {
+            background-color: #4a69bd;
+            border-color: #4a69bd;
+        }
+
+        .btn-primary:hover {
+            background-color: #3c57a1;
+            border-color: #3c57a1;
+        }
+
+        .btn-secondary {
+            background-color: #555;
+            border-color: #555;
+        }
+
+        .btn-secondary:hover {
+            background-color: #666;
+            border-color: #666;
+        }
+
+        label {
+            color: #c7c7c7;
+        }
+    </style>
+</head>
+<body class="d-flex align-items-center justify-content-center">
+
+<div class="container">
+    <h2 class="text-center mb-4">Orario di lavoro</h2>
+
+    <!-- Errore -->
+    <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+        <p th:text="${errorMessage}"></p>
+    </div>
+
+    <!-- Form -->
+    <form th:action="@{/workhours}" th:object="${workHoursForm}" method="post">
+        <div class="mb-3">
+            <label for="entryTime" class="form-label">Orario di entrata:</label>
+            <input type="time" id="entryTime" th:field="*{entryTime}" class="form-control bg-dark text-light" required />
+        </div>
+        <div class="mb-3">
+            <label for="exitTime" class="form-label">Orario di uscita:</label>
+            <input type="time" id="exitTime" th:field="*{exitTime}" class="form-control bg-dark text-light" required />
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Invia</button>
+    </form>
+
+    <!-- Bonus o Debito -->
+    <div th:if="${bonus != null}" class="mt-4">
+        <h3 class="text-center text-success"><span th:text="${bonus}"></span></h3>
+    </div>
+
+    <!-- Tabella riepilogo -->
+    <div class="mt-5">
+        <h2 class="text-center mb-4">Riepilogo orario settimanale</h2>
+        <table class="table table-striped table-dark">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Data</th>
+                <th>Ora d'ingresso</th>
+                <th>Ora d'uscita</th>
+                <th>Ore lavorate</th>
+                <th>Bonus/Debito</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="day : ${workingDays}">
+                <td th:text="${day.id}"></td>
+                <td th:text="${day.date}"></td>
+                <td th:text="${day.entryTime != null ? day.entryTime : '-'}"></td>
+                <td th:text="${day.exitTime != null ? day.exitTime : '-'}"></td>
+                <td th:text="${day.workedHours != null ? day.workedHours.toHoursPart() + 'h ' + day.workedHours.toMinutesPart() + 'm' : '-'}"></td>
+                <td th:text="${day.bonusDebFormatted != null ? day.bonusDebFormatted : '0'}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Link per il riepilogo settimanale -->
+    <div class="text-center mt-4">
+        <a th:href="@{/weekStatus}" class="btn btn-secondary">Visualizza Riepilogo Settimanale</a>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
