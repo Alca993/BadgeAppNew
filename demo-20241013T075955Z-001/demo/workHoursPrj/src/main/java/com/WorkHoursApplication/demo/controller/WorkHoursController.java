@@ -5,6 +5,7 @@ import com.WorkHoursApplication.demo.model.WorkingDay;
 import com.WorkHoursApplication.demo.service.WorkHoursService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -114,6 +115,14 @@ public class WorkHoursController {
             return String.format("%02d ore e %02d minuti",hours,minutes);
         }else {
             return String.format("%02d ore e %02d minuti", hours, minutes);
+        }
+    }
+
+    @RequestMapping("/health")
+    public class HealthController {
+        @GetMapping
+        public ResponseEntity<String> healthCheck() {
+            return ResponseEntity.ok("OK");
         }
     }
 }

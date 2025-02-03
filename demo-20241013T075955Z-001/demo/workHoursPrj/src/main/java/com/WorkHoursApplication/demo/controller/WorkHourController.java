@@ -94,5 +94,11 @@ public class WorkHourController {
             return String.format("%02d ore e %02d minuti", hours, minutes);
         }
     }
-
+    @RequestMapping("/health")
+    public class HealthController {
+        @GetMapping
+        public ResponseEntity<String> healthCheck() {
+            return ResponseEntity.ok("OK");
+        }
+    }
 }
