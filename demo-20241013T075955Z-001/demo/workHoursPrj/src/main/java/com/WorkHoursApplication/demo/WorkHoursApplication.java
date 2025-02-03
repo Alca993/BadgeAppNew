@@ -11,6 +11,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class WorkHoursApplication {
 
 	public static void main(String[] args) {
+		String port = System.getenv("PORT"); // Ottieni la porta da Render
+		System.out.println("🔥 L'applicazione si avvia sulla porta: " + port);
 		SpringApplication.run(WorkHoursApplication.class, args);
 	}
 

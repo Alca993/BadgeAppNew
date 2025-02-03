@@ -29,6 +29,9 @@ public class WorkHoursService {
     @Autowired
     private EntityManager entityManager;
 
+    private final int FridayWorkHours = 6;
+    private final int WeeklyWorkHours = 8;
+
     public void registerEntry(LocalTime entryTime){
         WorkingDay today = workingDayRepository.findByDate(LocalDate.now())
                 .orElse(new WorkingDay(LocalDate.now()));
@@ -53,7 +56,7 @@ public class WorkHoursService {
             Duration requiredHours = calculateRequiredDailyHours(today.getDate().getDayOfWeek());
             Duration bonusOrDebito = dailyWorkedHours.minus(requiredHours);
             today.setBonusOrDebito(bonusOrDebito);
-            today.setBonusDebFormatted(formatDuration(bonusOrDebito));
+            today.setBonusDebFormatted(formatDuration(bonusOrDebito.abs()));
         }
         workingDayRepository.save(today);
     }
@@ -64,9 +67,9 @@ public class WorkHoursService {
 
     public Duration calculateRequiredDailyHours(DayOfWeek dayOfWeek){
         if(dayOfWeek == DayOfWeek.FRIDAY){
-            return Duration.ofHours(6);
+            return Duration.ofHours(FridayWorkHours);
         }else if (dayOfWeek.getValue()>=DayOfWeek.MONDAY.getValue() && dayOfWeek.getValue()<=DayOfWeek.THURSDAY.getValue()){
-            return Duration.ofHours(8);
+            return Duration.ofHours(WeeklyWorkHours);
         }else{
             return Duration.ZERO;
         }
@@ -130,7 +133,7 @@ public class WorkHoursService {
         today.setExitTime(exitTime);
         Duration diff = calculateWorkedHours(entryTime,exitTime);
         today.setBonusOrDebito(diff.minus(calculateRequiredDailyHours(LocalDate.now().getDayOfWeek())));
-        today.setBonusDebFormatted(formatDuration(diff.minus(calculateRequiredDailyHours(LocalDate.now().getDayOfWeek()))));
+        today.setBonusDebFormatted(formatDuration(diff.minus(calculateRequiredDailyHours(LocalDate.now().getDayOfWeek())).abs()));
         //System.out.println("Bonus/Debito: " + today.getBonusDebFormatted());
         workingDayRepository.save(today);
     }
@@ -164,7 +167,7 @@ public class WorkHoursService {
         workingDay.setExitTime(exitTime);
         Duration workedHours = calculateWorkedHours(entryTime, exitTime);
         workingDay.setBonusOrDebito(workedHours.minus(calculateRequiredDailyHours(LocalDate.now().getDayOfWeek())));
-        workingDay.setBonusDebFormatted(formatDuration(workedHours.minus(calculateRequiredDailyHours(LocalDate.now().getDayOfWeek()))));
+        workingDay.setBonusDebFormatted(formatDuration(workedHours.minus(calculateRequiredDailyHours(LocalDate.now().getDayOfWeek())).abs()));
         workingDayRepository.save(workingDay);
     }
 
