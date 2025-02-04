@@ -78,10 +78,6 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<source>21<source\>
-					<target>21<target\>
-				</configuration>
 				<configuration>					
 					<excludes>
 						<exclude>
