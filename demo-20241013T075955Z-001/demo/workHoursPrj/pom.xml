@@ -81,6 +81,8 @@
 				<configuration>
 					<source>21<source\>
 					<target>21<target\>
+				</configuration>
+				<configuration>					
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>
