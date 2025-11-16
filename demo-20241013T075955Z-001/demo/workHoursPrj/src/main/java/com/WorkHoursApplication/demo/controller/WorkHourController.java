@@ -46,9 +46,9 @@ public class WorkHourController {
            if(saldoCumulativo==Duration.ZERO){
                return ResponseEntity.ok("Sei in pari!");
            } else if (saldoCumulativo.isPositive()) {
-               return ResponseEntity.ok("Hai accumulato un bonus di : " + hours + " ore e " + minutes + " minuti.");
+               return ResponseEntity.ok("Hai accumulato un bonus di : " + hours + " ore e " + minutes + " minuti." + "\n" +workHoursService.OrarioDiUscitaPrevisto());
            } else {
-               return ResponseEntity.ok("Hai accumulato un debito: " + Math.abs(hours) + " ore e " + Math.abs(minutes) + " minuti.");
+               return ResponseEntity.ok("Hai accumulato un debito: " + Math.abs(hours) + " ore e " + Math.abs(minutes) + " minuti."  + "\n" +workHoursService.OrarioDiUscitaPrevisto());
            }
        }
     @GetMapping("/weekStatus")
