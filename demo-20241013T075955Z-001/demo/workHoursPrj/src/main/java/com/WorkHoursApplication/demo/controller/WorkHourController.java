@@ -61,20 +61,29 @@ public class WorkHourController {
 
         Duration totalBonusOrDebt = workHoursService.calculateTotalBonusOrDebitoCumulat();
         if(totalBonusOrDebt==Duration.ZERO){
-            situation += "Sei in pari!";
+            situation += "\nSei in pari!";
         }else if(totalBonusOrDebt.isPositive()) {
-            situation += "\n\nBonus cumulato: " + formatDuration(totalBonusOrDebt);
+            situation += "\n\nBonus cumulato: " + formatDuration(totalBonusOrDebt) + "\n" +workHoursService.OrarioDiUscitaPrevisto();
         }else{
-            situation += "\n\nDebito cumulato: " + formatDuration(totalBonusOrDebt);
+            situation += "\n\nDebito cumulato: " + formatDuration(totalBonusOrDebt) + "\n" +workHoursService.OrarioDiUscitaPrevisto();
         }
         return situation;
     }
-    private String formatWorkingDay(WorkingDay workingDay){
-        String entryTime = workingDay.getEntryTime().toString();
-        String exitTime = workingDay.getExitTime().toString();
-        String workedHours = formatDuration(workingDay.getWorkedHours());
-        String bonusOrDebt = workingDay.getBonusDebFormatted();
 
+    private String formatWorkingDay(WorkingDay workingDay){
+        String entryTime=null;
+        String exitTime;
+        String workedHours;
+        String bonusOrDebt;
+        try {
+            entryTime = workingDay.getEntryTime().toString();
+            exitTime = workingDay.getExitTime().toString();
+            workedHours = formatDuration(workingDay.getWorkedHours());
+            bonusOrDebt = workingDay.getBonusDebFormatted();
+        }catch (NullPointerException n){
+            return String.format("Data: %s | Ingresso: %s \n",
+                    workingDay.getDate().toString(),entryTime);
+        }
         return String.format("Data: %s | Ingresso: %s | Uscita: %s | Ore Lavorate: %s | Bonus/Debito: %s\n",
                 workingDay.getDate().toString(),entryTime,exitTime,workedHours,bonusOrDebt);
     }

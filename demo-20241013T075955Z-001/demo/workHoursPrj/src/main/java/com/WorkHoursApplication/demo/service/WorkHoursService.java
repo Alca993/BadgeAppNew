@@ -114,6 +114,26 @@ public class WorkHoursService {
        return total;
    }
 
+    public String OrarioDiUscitaPrevisto() {
+        String result = "";
+        WorkingDay today = workingDayRepository.findByDate(LocalDate.now())
+                .orElse(new WorkingDay(LocalDate.now()));
+        if (calculateTotalBonusOrDebitoCumulat().isNegative()) {
+            try {
+                result= "Orario di uscita previsto: " + today.getEntryTime().plus(calculateRequiredDailyHours(today.getDate().getDayOfWeek()).plus(calculateTotalBonusOrDebitoCumulat().abs()));
+            } catch (NullPointerException e) {
+                result= "Attenzione! Per visualizzare l'orario di uscita previsto deve essere badgiato necessariamente l'ingresso dell'attuale giornata lavorativa!";
+            }
+        } else {
+            try {
+                result= "Orario di uscita previsto: " + today.getEntryTime().plus(calculateRequiredDailyHours(today.getDate().getDayOfWeek()).minus(calculateTotalBonusOrDebitoCumulat().abs()));
+            } catch (NullPointerException e) {
+                result= "Attenzione! Per visualizzare l'orario di uscita previsto deve essere badgiato necessariamente l'ingresso dell'attuale giornata lavorativa!";
+            }
+        }
+        return result;
+    }
+
     @Scheduled(cron = "0 0 0 * * MON")
     public void clearPreviousWeekRecords(){
         LocalDate today = LocalDate.now();
