@@ -7,6 +7,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -16,6 +17,8 @@ import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAmount;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -31,6 +34,8 @@ public class WorkHoursService {
 
     private final int FridayWorkHours = 6;
     private final int WeeklyWorkHours = 8;
+    private LocalTime registeredPauseExit = null;
+    private int calculatedPauseExit = 0;
 
     public void registerEntry(LocalTime entryTime){
         WorkingDay today = workingDayRepository.findByDate(LocalDate.now())
@@ -49,12 +54,15 @@ public class WorkHoursService {
                 .orElseThrow(() -> new IllegalStateException("Orario d'ingresso non trovato!"));
         today.setExitTime(exitTime);
         DayOfWeek todayOfWeek = today.getDate().getDayOfWeek();
-        if(todayOfWeek == DayOfWeek.SATURDAY || todayOfWeek == DayOfWeek.SUNDAY){
+        if(todayOfWeek == DayOfWeek.SATURDAY  || todayOfWeek == DayOfWeek.SUNDAY){
             today.setBonusOrDebito(Duration.ZERO);
         }else {
             Duration dailyWorkedHours = calculateWorkedHours(today.getEntryTime(), today.getExitTime());
             Duration requiredHours = calculateRequiredDailyHours(today.getDate().getDayOfWeek());
             Duration bonusOrDebito = dailyWorkedHours.minus(requiredHours);
+            if(calculatedPauseExit>0){
+                bonusOrDebito = bonusOrDebito.minus(Duration.ofMinutes(calculatedPauseExit));
+            }
             today.setBonusOrDebito(bonusOrDebito);
             today.setBonusDebFormatted(formatDuration(bonusOrDebito.abs()));
         }
@@ -68,13 +76,32 @@ public class WorkHoursService {
     public Duration calculateRequiredDailyHours(DayOfWeek dayOfWeek){
         if(dayOfWeek == DayOfWeek.FRIDAY){
             return Duration.ofHours(FridayWorkHours);
-        }else if (dayOfWeek.getValue()>=DayOfWeek.MONDAY.getValue() && dayOfWeek.getValue()<=DayOfWeek.THURSDAY.getValue()){
+        }else if (dayOfWeek.getValue()>=DayOfWeek.MONDAY.getValue() && dayOfWeek.getValue()<=DayOfWeek.SUNDAY.getValue()){
             return Duration.ofHours(WeeklyWorkHours);
         }else{
             return Duration.ZERO;
         }
     }
 
+    public LocalTime registerPauseExit(){
+        registeredPauseExit = LocalTime.now();
+        return LocalTime.now();
+    }
+
+    public LocalTime registerPauseEntry(){
+        return LocalTime.now();
+    }
+
+
+    public int calculatePauseTime(){
+        int pauseTime = registerPauseEntry().getMinute()-registeredPauseExit.getMinute();
+        if(pauseTime>30){
+            System.out.println("Pausa superiore a 30 minuti!");
+            pauseTime = pauseTime-30;
+            calculatedPauseExit = pauseTime;
+        }
+        return pauseTime;
+    }
 
     public Duration calculateTotalBonusOrDebito(){
         List<WorkingDay> days = workingDayRepository.findAll();

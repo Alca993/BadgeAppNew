@@ -37,7 +37,7 @@ public class WorkHourController {
         return ResponseEntity.ok("Uscita registrata.");
     }
 
-       @GetMapping("/bonus-debito-cumulativo")
+    @GetMapping("/bonus-debito-cumulativo")
     public ResponseEntity<String> calculateBonusOrDebito() {
            Duration saldoCumulativo = workHoursService.calculateTotalBonusOrDebitoCumulat();
            System.out.println(saldoCumulativo);
@@ -68,6 +68,18 @@ public class WorkHourController {
             situation += "\n\nDebito cumulato: " + formatDuration(totalBonusOrDebt) + "\n" +workHoursService.OrarioDiUscitaPrevisto();
         }
         return situation;
+    }
+
+    @GetMapping("/pauseExit")
+    public ResponseEntity<String> registerPauseExit(){
+        workHoursService.registerPauseExit();
+        return ResponseEntity.ok("Uscita registrata.");
+    }
+
+    @GetMapping("/pauseEntry")
+    public ResponseEntity<String> registerPauseEntry(){
+        workHoursService.calculatePauseTime();
+        return ResponseEntity.ok("Ingresso registrato.");
     }
 
     private String formatWorkingDay(WorkingDay workingDay){
