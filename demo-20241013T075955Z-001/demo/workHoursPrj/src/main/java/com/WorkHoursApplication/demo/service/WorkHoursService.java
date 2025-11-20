@@ -145,6 +145,7 @@ public class WorkHoursService {
         String result = "";
         WorkingDay today = workingDayRepository.findByDate(LocalDate.now())
                 .orElse(new WorkingDay(LocalDate.now()));
+        if( today.getExitTime()==null){
         if (calculateTotalBonusOrDebitoCumulat().isNegative()) {
             try {
                 result= "Orario di uscita previsto: " + today.getEntryTime().plus(calculateRequiredDailyHours(today.getDate().getDayOfWeek()).plus(calculateTotalBonusOrDebitoCumulat().abs()));
@@ -157,6 +158,7 @@ public class WorkHoursService {
             } catch (NullPointerException e) {
                 result= "Attenzione! Per visualizzare l'orario di uscita previsto deve essere badgiato necessariamente l'ingresso dell'attuale giornata lavorativa!";
             }
+        }
         }
         return result;
     }
