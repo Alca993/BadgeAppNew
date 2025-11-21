@@ -96,7 +96,6 @@ public class WorkHoursService {
     public int calculatePauseTime(){
         int pauseTime = registerPauseEntry().getMinute()-registeredPauseExit.getMinute();
         if(pauseTime>30){
-            System.out.println("Pausa superiore a 30 minuti!");
             pauseTime = pauseTime-30;
             calculatedPauseExit = pauseTime;
         }

@@ -58,16 +58,17 @@ public class WorkHoursController {
     public String getCurrentWorkHoursStatus(Model model){
         List<WorkingDay> workingDays = workHoursService.getAllWorkingDays();
         Duration totalBonusOrDebt = workHoursService.calculateTotalBonusOrDebitoCumulat();
+        String orarioDiUscitaPrevisto = workHoursService.OrarioDiUscitaPrevisto();
         model.addAttribute("workingDays",workingDays);
         if(totalBonusOrDebt==Duration.ZERO){
-            model.addAttribute("totalBonusOrDebt",0);
+            model.addAttribute("totalBonusOrDebt","Sei in pari!");
         }else if(totalBonusOrDebt.isPositive()) {
             model.addAttribute("totalBonusOrDebt","Bonus cumulato: " + formatDuration(totalBonusOrDebt));
         }else{
             model.addAttribute("totalBonusOrDebt","Debito cumulato: " + formatDuration(totalBonusOrDebt));
         }
         //model.addAttribute("totalBonusOrDebt",formatDuration(totalBonusOrDebt));
-
+        model.addAttribute("orarioDiUscitaPrevisto",orarioDiUscitaPrevisto);
         return "weekStatus";
     }
     @GetMapping("/workhours/edit/{id}")
