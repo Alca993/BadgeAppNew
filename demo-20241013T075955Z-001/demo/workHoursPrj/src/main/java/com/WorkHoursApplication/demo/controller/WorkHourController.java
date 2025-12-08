@@ -44,7 +44,11 @@ public class WorkHourController {
            long hours = saldoCumulativo.toHours();
            long minutes = saldoCumulativo.toMinutesPart();
            if(saldoCumulativo==Duration.ZERO){
-               return ResponseEntity.ok("Sei in pari!");
+               if(workHoursService.isTheFirstWorkDayOfTheWeek()){
+                   return ResponseEntity.ok("Sei in pari!" + "\n" + workHoursService.OrarioDiUscitaPrevisto());
+               }else {
+                   return ResponseEntity.ok("Sei in pari!");
+               }
            } else if (saldoCumulativo.isPositive()) {
                return ResponseEntity.ok("Hai accumulato un bonus di : " + hours + " ore e " + minutes + " minuti." + "\n" +workHoursService.OrarioDiUscitaPrevisto());
            } else {
@@ -71,14 +75,14 @@ public class WorkHourController {
     }
 
     @GetMapping("/pauseExit")
-    public ResponseEntity<String> registerPauseExit(){
-        workHoursService.registerPauseExit();
+    public ResponseEntity<String> registerPauseExit(@RequestParam String exitTime){
+        workHoursService.registerPauseExit(LocalTime.parse(exitTime));
         return ResponseEntity.ok("Uscita registrata.");
     }
 
     @GetMapping("/pauseEntry")
-    public ResponseEntity<String> registerPauseEntry(){
-        workHoursService.calculatePauseTime();
+    public ResponseEntity<String> registerPauseEntry(@RequestParam String entryTime){
+        workHoursService.registerPauseEntry(LocalTime.parse(entryTime));
         return ResponseEntity.ok("Ingresso registrato.");
     }
 

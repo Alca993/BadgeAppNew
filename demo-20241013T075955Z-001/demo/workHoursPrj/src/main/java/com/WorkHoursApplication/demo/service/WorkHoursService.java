@@ -34,8 +34,8 @@ public class WorkHoursService {
 
     private final int FridayWorkHours = 6;
     private final int WeeklyWorkHours = 8;
-    private LocalTime registeredPauseExit = null;
-    private int calculatedPauseExit = 0;
+    private final int MINUTES = 60;
+    private final int BREAKTIME = 30;
 
     public void registerEntry(LocalTime entryTime){
         WorkingDay today = workingDayRepository.findByDate(LocalDate.now())
@@ -54,14 +54,14 @@ public class WorkHoursService {
                 .orElseThrow(() -> new IllegalStateException("Orario d'ingresso non trovato!"));
         today.setExitTime(exitTime);
         DayOfWeek todayOfWeek = today.getDate().getDayOfWeek();
-        if(todayOfWeek == DayOfWeek.SATURDAY  || todayOfWeek == DayOfWeek.SUNDAY){
+        if(todayOfWeek == DayOfWeek.SATURDAY || todayOfWeek == DayOfWeek.SUNDAY){
             today.setBonusOrDebito(Duration.ZERO);
         }else {
             Duration dailyWorkedHours = calculateWorkedHours(today.getEntryTime(), today.getExitTime());
             Duration requiredHours = calculateRequiredDailyHours(today.getDate().getDayOfWeek());
             Duration bonusOrDebito = dailyWorkedHours.minus(requiredHours);
-            if(calculatedPauseExit>0){
-                bonusOrDebito = bonusOrDebito.minus(Duration.ofMinutes(calculatedPauseExit));
+            if(calculatePauseTime()>0){
+                bonusOrDebito = bonusOrDebito.minus(Duration.ofMinutes(calculatePauseTime()));
             }
             today.setBonusOrDebito(bonusOrDebito);
             today.setBonusDebFormatted(formatDuration(bonusOrDebito.abs()));
@@ -83,22 +83,39 @@ public class WorkHoursService {
         }
     }
 
-    public LocalTime registerPauseExit(){
-        registeredPauseExit = LocalTime.now();
-        return LocalTime.now();
+    public void registerPauseExit(LocalTime exitTime){
+        WorkingDay today = workingDayRepository.findByDate(LocalDate.now())
+                .orElse(new WorkingDay(LocalDate.now()));;
+        today.setExitPauseTime(exitTime);
+        workingDayRepository.save(today);
     }
 
-    public LocalTime registerPauseEntry(){
-        return LocalTime.now();
+    public void registerPauseEntry(LocalTime entryTime){
+        WorkingDay today = workingDayRepository.findByDate(LocalDate.now())
+                .orElse(new WorkingDay(LocalDate.now()));
+        today.setEntryPauseTime(entryTime);
+        workingDayRepository.save(today);
+        calculatePauseTime();
+        System.out.println(today.getEntryPauseTime());
+
     }
 
 
     public int calculatePauseTime(){
-        int pauseTime = registerPauseEntry().getMinute()-registeredPauseExit.getMinute();
-        if(pauseTime>30){
-            pauseTime = pauseTime-30;
-            calculatedPauseExit = pauseTime;
+        WorkingDay today = workingDayRepository.findByDate(LocalDate.now())
+                .orElse(new WorkingDay(LocalDate.now()));
+        System.out.println("La durata della pause è di: " + formatDurationInt(Duration.between(today.getEntryPauseTime(),today.getExitPauseTime()).abs()));
+        int pauseTime = formatDurationInt(Duration.between(today.getEntryPauseTime(),today.getExitPauseTime()).abs());
+        System.out.println(pauseTime);
+        if(pauseTime>BREAKTIME){
+            pauseTime = pauseTime-BREAKTIME;
+            today.setCalculatedPauseExit(pauseTime);
+            workingDayRepository.save(today);
+            return pauseTime;
         }
+        pauseTime = 0;
+        today.setCalculatedPauseExit(pauseTime);
+        workingDayRepository.save(today);
         return pauseTime;
     }
 
@@ -145,7 +162,13 @@ public class WorkHoursService {
         WorkingDay today = workingDayRepository.findByDate(LocalDate.now())
                 .orElse(new WorkingDay(LocalDate.now()));
         if( today.getExitTime()==null){
-        if (calculateTotalBonusOrDebitoCumulat().isNegative()) {
+        if(workingDayRepository.count()==1){
+            try {
+                result= "Orario di uscita previsto: " + today.getEntryTime().plus(calculateRequiredDailyHours(today.getDate().getDayOfWeek()).plus(calculateTotalBonusOrDebitoCumulat().abs()));
+            } catch (NullPointerException e) {
+                result= "Attenzione! Per visualizzare l'orario di uscita previsto deve essere badgiato necessariamente l'ingresso dell'attuale giornata lavorativa!";
+            }
+        }else if (calculateTotalBonusOrDebitoCumulat().isNegative()) {
             try {
                 result= "Orario di uscita previsto: " + today.getEntryTime().plus(calculateRequiredDailyHours(today.getDate().getDayOfWeek()).plus(calculateTotalBonusOrDebitoCumulat().abs()));
             } catch (NullPointerException e) {
@@ -205,6 +228,12 @@ public class WorkHoursService {
         return String.format("%02d:%02d",hours,minutes);
     }
 
+    private int formatDurationInt(Duration duration){
+        long hours = duration.toHours();
+        long minutes = duration.toMinutesPart();
+        return (int) (hours*MINUTES+minutes);
+    }
+
     public Optional<WorkingDay> findById(Long id) {
         return workingDayRepository.findById(id);
     }
@@ -214,9 +243,24 @@ public class WorkHoursService {
         workingDay.setEntryTime(entryTime);
         workingDay.setExitTime(exitTime);
         Duration workedHours = calculateWorkedHours(entryTime, exitTime);
-        workingDay.setBonusOrDebito(workedHours.minus(calculateRequiredDailyHours(LocalDate.now().getDayOfWeek())));
-        workingDay.setBonusDebFormatted(formatDuration(workedHours.minus(calculateRequiredDailyHours(LocalDate.now().getDayOfWeek())).abs()));
-        workingDayRepository.save(workingDay);
+        int pause = calculatePauseTime();
+        if(pause>0){
+            Duration tot = workedHours.minus(calculateRequiredDailyHours(LocalDate.now().getDayOfWeek()));
+            workingDay.setBonusOrDebito(tot.minus(Duration.ofMinutes(calculatePauseTime())));
+            workingDay.setBonusDebFormatted(formatDuration(tot.minus(Duration.ofMinutes(calculatePauseTime())).abs()));
+            if(formatDurationInt(tot.minus(Duration.ofMinutes(calculatePauseTime())))>=0){
+                workingDay.setCalculatedPauseExit(0);
+            }else{
+                workingDay.setBonusOrDebito(tot.minus(Duration.ofMinutes(calculatePauseTime())));
+                workingDay.setBonusDebFormatted(formatDuration(tot.minus(Duration.ofMinutes(calculatePauseTime())).abs()));
+                workingDay.setCalculatedPauseExit(calculatePauseTime());
+            }
+            workingDayRepository.save(workingDay);
+        }else {
+            workingDay.setBonusOrDebito(workedHours.minus(calculateRequiredDailyHours(LocalDate.now().getDayOfWeek())));
+            workingDay.setBonusDebFormatted(formatDuration(workedHours.minus(calculateRequiredDailyHours(LocalDate.now().getDayOfWeek())).abs()));
+            workingDayRepository.save(workingDay);
+        }
     }
 
     public void deleteById(Long id) {
@@ -236,5 +280,11 @@ public class WorkHoursService {
     
     public void resetAutoIncrement(){
         entityManager.createNativeQuery("ALTER TABLE working_day AUTO_INCREMENT = 1").executeUpdate();
+    }
+
+    public boolean isTheFirstWorkDayOfTheWeek(){
+        WorkingDay today = workingDayRepository.findByDate(LocalDate.now())
+                .orElse(new WorkingDay(LocalDate.now()));
+        return workingDayRepository.count() == 1 && today.getExitTime() == null;
     }
 }

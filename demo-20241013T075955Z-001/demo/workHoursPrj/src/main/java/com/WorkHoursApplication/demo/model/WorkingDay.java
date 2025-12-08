@@ -15,7 +15,7 @@ import java.time.LocalTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "workingDay")
+@Table(name = "workingDayAdv")
 public class WorkingDay {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,6 +25,9 @@ public class WorkingDay {
     private LocalTime exitTime;
     private Duration bonusOrDebito;
     private String bonusDebFormatted;
+    private LocalTime exitPauseTime;
+    private LocalTime entryPauseTime;
+    private int calculatedPauseExit;
 
     public WorkingDay(LocalDate date) {
         this.date = date;
@@ -36,4 +39,5 @@ public class WorkingDay {
         }
         return Duration.ZERO;
     }
+
 }
