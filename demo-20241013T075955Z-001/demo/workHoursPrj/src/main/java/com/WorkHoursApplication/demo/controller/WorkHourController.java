@@ -93,19 +93,23 @@ public class WorkHourController {
     private String formatWorkingDay(WorkingDay workingDay){
         String entryTime=null;
         String exitTime;
+        String pauseExitTime;
+        String pauseEntryTime;
         String workedHours;
         String bonusOrDebt;
         try {
             entryTime = workingDay.getEntryTime().toString();
             exitTime = workingDay.getExitTime().toString();
+            pauseExitTime = workingDay.getExitPauseTime().toString();
+            pauseEntryTime = workingDay.getEntryPauseTime().toString();
             workedHours = formatDuration(workingDay.getWorkedHours());
             bonusOrDebt = workingDay.getBonusDebFormatted();
         }catch (NullPointerException n){
             return String.format("Data: %s | Ingresso: %s \n",
                     workingDay.getDate().toString(),entryTime);
         }
-        return String.format("Data: %s | Ingresso: %s | Uscita: %s | Ore Lavorate: %s | Bonus/Debito: %s\n",
-                workingDay.getDate().toString(),entryTime,exitTime,workedHours,bonusOrDebt);
+        return String.format("Data: %s | Ingresso: %s | Uscita: %s | Uscita Break: %s | Ingresso Break: %s | Ore Lavorate: %s | Bonus/Debito: %s\n",
+                workingDay.getDate().toString(),entryTime,exitTime, pauseExitTime, pauseEntryTime,workedHours,bonusOrDebt);
     }
 
     private String formatDuration(Duration duration){
