@@ -65,7 +65,11 @@ public class WorkHourController {
 
         Duration totalBonusOrDebt = workHoursService.calculateTotalBonusOrDebitoCumulat();
         if(totalBonusOrDebt==Duration.ZERO){
-            situation += "\nSei in pari!";
+            if(workHoursService.isTheFirstWorkDayOfTheWeek()) {
+                situation += "\nSei in pari!" + "\n" + workHoursService.OrarioDiUscitaPrevisto();
+            }else {
+                situation += "\nSei in pari!";
+            }
         }else if(totalBonusOrDebt.isPositive()) {
             situation += "\n\nBonus cumulato: " + formatDuration(totalBonusOrDebt) + "\n" +workHoursService.OrarioDiUscitaPrevisto();
         }else{
