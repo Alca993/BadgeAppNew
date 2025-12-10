@@ -102,8 +102,11 @@ public class WorkHoursService {
 
 
     public int calculatePauseTime(){
-        WorkingDay today = workingDayRepository.findByDate(LocalDate.now())
-                .orElse(new WorkingDay(LocalDate.now()));
+        WorkingDay today = workingDayRepository.findAll()
+                .stream()
+                .filter(day -> day.getDate().equals(LocalDate.now()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Pausa non badgiata!"));
         System.out.println("La durata della pause è di: " + formatDurationInt(Duration.between(today.getEntryPauseTime(),today.getExitPauseTime()).abs()));
         int pauseTime = formatDurationInt(Duration.between(today.getEntryPauseTime(),today.getExitPauseTime()).abs());
         System.out.println(pauseTime);
