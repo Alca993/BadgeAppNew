@@ -175,12 +175,6 @@ public class WorkHoursService {
        return total;
    }
 
-    public Duration calculateTotalPauseTime(){
-        List<WorkingDay> workingDays = workingDayRepository.findAll();
-        Duration total = Duration.ofMinutes(workingDays.stream().map(WorkingDay::getCalculatedPauseExit)
-                .reduce(0, Integer::sum));
-        return total;
-    }
 
     public String OrarioDiUscitaPrevisto() {
         String result = "";
@@ -189,19 +183,19 @@ public class WorkHoursService {
         if( today.getExitTime()==null){
         if(workingDayRepository.count()==1){
             try {
-                result= "Orario di uscita previsto: " + today.getEntryTime().plus(calculateRequiredDailyHours(today.getDate().getDayOfWeek()).plus(calculateTotalBonusOrDebitoCumulat().abs()).plus(calculateTotalPauseTime().abs()));
+                result= "Orario di uscita previsto: " + today.getEntryTime().plus(calculateRequiredDailyHours(today.getDate().getDayOfWeek()).plus(calculateTotalBonusOrDebitoCumulat().abs().plus(Duration.ofMinutes(today.getCalculatedPauseExit()).abs())));
             } catch (NullPointerException e) {
                 result= "Attenzione! Per visualizzare l'orario di uscita previsto deve essere badgiato necessariamente l'ingresso dell'attuale giornata lavorativa!";
             }
         }else if (calculateTotalBonusOrDebitoCumulat().isNegative()) {
             try {
-                result= "Orario di uscita previsto: " + today.getEntryTime().plus(calculateRequiredDailyHours(today.getDate().getDayOfWeek()).plus(calculateTotalBonusOrDebitoCumulat().abs().plus(calculateTotalPauseTime().abs())));
+                result= "Orario di uscita previsto: " + today.getEntryTime().plus(calculateRequiredDailyHours(today.getDate().getDayOfWeek()).plus(calculateTotalBonusOrDebitoCumulat().abs().plus(Duration.ofMinutes(today.getCalculatedPauseExit()).abs())));
             } catch (NullPointerException e) {
                 result= "Attenzione! Per visualizzare l'orario di uscita previsto deve essere badgiato necessariamente l'ingresso dell'attuale giornata lavorativa!";
             }
         } else {
             try {
-                result= "Orario di uscita previsto: " + today.getEntryTime().plus(calculateRequiredDailyHours(today.getDate().getDayOfWeek()).minus(calculateTotalBonusOrDebitoCumulat().abs().minus(calculateTotalPauseTime().abs())));
+                result= "Orario di uscita previsto: " + today.getEntryTime().plus(calculateRequiredDailyHours(today.getDate().getDayOfWeek()).minus(calculateTotalBonusOrDebitoCumulat().abs().minus(Duration.ofMinutes(today.getCalculatedPauseExit()).abs())));
             } catch (NullPointerException e) {
                 result= "Attenzione! Per visualizzare l'orario di uscita previsto deve essere badgiato necessariamente l'ingresso dell'attuale giornata lavorativa!";
             }
