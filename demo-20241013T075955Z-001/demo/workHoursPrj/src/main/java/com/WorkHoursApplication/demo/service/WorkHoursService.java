@@ -91,13 +91,18 @@ public class WorkHoursService {
     }
 
     public void registerPauseEntry(LocalTime entryTime){
+        try {
         WorkingDay today = workingDayRepository.findByDate(LocalDate.now())
                 .orElse(new WorkingDay(LocalDate.now()));
         today.setEntryPauseTime(entryTime);
-        workingDayRepository.save(today);
-        calculatePauseTime();
-        System.out.println(today.getEntryPauseTime());
-
+        if(today.getExitPauseTime()!=null) {
+            workingDayRepository.save(today);
+            calculatePauseTime();
+            System.out.println(today.getEntryPauseTime());
+        }
+        }catch (NullPointerException n){
+            System.out.println("Attenzione, è necessario prima badgiare l'orario di uscita della pausa pranzo!");
+        }
     }
 
 
@@ -262,8 +267,7 @@ public class WorkHoursService {
         workingDay.setEntryTime(entryTime);
         workingDay.setExitTime(exitTime);
         Duration workedHours = calculateWorkedHours(entryTime, exitTime);
-        int pause = calculatePauseTime(workingDay);
-        if(pause>0){
+        if(workingDay.getCalculatedPauseExit()>0){
             Duration tot = workedHours.minus(calculateRequiredDailyHours(LocalDate.now().getDayOfWeek()));
             workingDay.setBonusOrDebito(tot.minus(Duration.ofMinutes(calculatePauseTime(workingDay))));
             workingDay.setBonusDebFormatted(formatDuration(tot.minus(Duration.ofMinutes(calculatePauseTime(workingDay))).abs()));
