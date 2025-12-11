@@ -96,7 +96,6 @@
             <th>Bonus/Debito</th>
             <th>Break Uscita</th>
             <th>Break Ingresso</th>
-            <th>Minuti break da recuperare</th>
             <th>Azioni</th>
         </tr>
         </thead>
@@ -109,7 +108,6 @@
             <td th:text="${day.bonusDebFormatted != null ? day.bonusDebFormatted : '0'}"></td>
             <td th:text="${day.exitPauseTime != null ? day.exitPauseTime : '-'}"></td>
             <td th:text="${day.entryPauseTime != null ? day.entryPauseTime : '-'}"></td>
-            <td th:text="${day.calculatedPauseExit != null ? day.calculatedPauseExit : '0'}"></td>
             <td>
                 <div class="d-flex gap-2">
                     <a th:href="@{/workhours/edit/{id}(id=${day.id})}" class="btn btn-warning btn-sm">Modifica</a>

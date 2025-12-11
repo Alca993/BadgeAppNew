@@ -122,6 +122,21 @@ public class WorkHoursService {
         return pauseTime;
     }
 
+    public int calculatePauseTime(WorkingDay today){
+        int pauseTime = formatDurationInt(Duration.between(today.getEntryPauseTime(),today.getExitPauseTime()).abs());
+        System.out.println(pauseTime);
+        if(pauseTime>BREAKTIME){
+            pauseTime = pauseTime-BREAKTIME;
+            today.setCalculatedPauseExit(pauseTime);
+            workingDayRepository.save(today);
+            return pauseTime;
+        }
+        pauseTime = 0;
+        today.setCalculatedPauseExit(pauseTime);
+        workingDayRepository.save(today);
+        return pauseTime;
+    }
+
     public Duration calculateTotalBonusOrDebito(){
         List<WorkingDay> days = workingDayRepository.findAll();
         return days.stream()
@@ -160,6 +175,13 @@ public class WorkHoursService {
        return total;
    }
 
+    public Duration calculateTotalPauseTime(){
+        List<WorkingDay> workingDays = workingDayRepository.findAll();
+        Duration total = Duration.ofMinutes(workingDays.stream().map(WorkingDay::getCalculatedPauseExit)
+                .reduce(0, Integer::sum));
+        return total;
+    }
+
     public String OrarioDiUscitaPrevisto() {
         String result = "";
         WorkingDay today = workingDayRepository.findByDate(LocalDate.now())
@@ -167,19 +189,19 @@ public class WorkHoursService {
         if( today.getExitTime()==null){
         if(workingDayRepository.count()==1){
             try {
-                result= "Orario di uscita previsto: " + today.getEntryTime().plus(calculateRequiredDailyHours(today.getDate().getDayOfWeek()).plus(calculateTotalBonusOrDebitoCumulat().abs()));
+                result= "Orario di uscita previsto: " + today.getEntryTime().plus(calculateRequiredDailyHours(today.getDate().getDayOfWeek()).plus(calculateTotalBonusOrDebitoCumulat().abs()).plus(calculateTotalPauseTime().abs()));
             } catch (NullPointerException e) {
                 result= "Attenzione! Per visualizzare l'orario di uscita previsto deve essere badgiato necessariamente l'ingresso dell'attuale giornata lavorativa!";
             }
         }else if (calculateTotalBonusOrDebitoCumulat().isNegative()) {
             try {
-                result= "Orario di uscita previsto: " + today.getEntryTime().plus(calculateRequiredDailyHours(today.getDate().getDayOfWeek()).plus(calculateTotalBonusOrDebitoCumulat().abs()));
+                result= "Orario di uscita previsto: " + today.getEntryTime().plus(calculateRequiredDailyHours(today.getDate().getDayOfWeek()).plus(calculateTotalBonusOrDebitoCumulat().abs().plus(calculateTotalPauseTime().abs())));
             } catch (NullPointerException e) {
                 result= "Attenzione! Per visualizzare l'orario di uscita previsto deve essere badgiato necessariamente l'ingresso dell'attuale giornata lavorativa!";
             }
         } else {
             try {
-                result= "Orario di uscita previsto: " + today.getEntryTime().plus(calculateRequiredDailyHours(today.getDate().getDayOfWeek()).minus(calculateTotalBonusOrDebitoCumulat().abs()));
+                result= "Orario di uscita previsto: " + today.getEntryTime().plus(calculateRequiredDailyHours(today.getDate().getDayOfWeek()).minus(calculateTotalBonusOrDebitoCumulat().abs().minus(calculateTotalPauseTime().abs())));
             } catch (NullPointerException e) {
                 result= "Attenzione! Per visualizzare l'orario di uscita previsto deve essere badgiato necessariamente l'ingresso dell'attuale giornata lavorativa!";
             }
@@ -246,17 +268,17 @@ public class WorkHoursService {
         workingDay.setEntryTime(entryTime);
         workingDay.setExitTime(exitTime);
         Duration workedHours = calculateWorkedHours(entryTime, exitTime);
-        int pause = calculatePauseTime();
+        int pause = calculatePauseTime(workingDay);
         if(pause>=0){
             Duration tot = workedHours.minus(calculateRequiredDailyHours(LocalDate.now().getDayOfWeek()));
-            workingDay.setBonusOrDebito(tot.minus(Duration.ofMinutes(calculatePauseTime())));
-            workingDay.setBonusDebFormatted(formatDuration(tot.minus(Duration.ofMinutes(calculatePauseTime())).abs()));
-            if(formatDurationInt(tot.minus(Duration.ofMinutes(calculatePauseTime())))>=0){
+            workingDay.setBonusOrDebito(tot.minus(Duration.ofMinutes(calculatePauseTime(workingDay))));
+            workingDay.setBonusDebFormatted(formatDuration(tot.minus(Duration.ofMinutes(calculatePauseTime(workingDay))).abs()));
+            if(formatDurationInt(tot.minus(Duration.ofMinutes(calculatePauseTime(workingDay))))>=0){
                 workingDay.setCalculatedPauseExit(0);
             }else{
-                workingDay.setBonusOrDebito(tot.minus(Duration.ofMinutes(calculatePauseTime())));
-                workingDay.setBonusDebFormatted(formatDuration(tot.minus(Duration.ofMinutes(calculatePauseTime())).abs()));
-                workingDay.setCalculatedPauseExit(calculatePauseTime());
+                workingDay.setBonusOrDebito(tot.minus(Duration.ofMinutes(calculatePauseTime(workingDay))));
+                workingDay.setBonusDebFormatted(formatDuration(tot.minus(Duration.ofMinutes(calculatePauseTime(workingDay))).abs()));
+                workingDay.setCalculatedPauseExit(calculatePauseTime(workingDay));
             }
             workingDayRepository.save(workingDay);
         }else {
