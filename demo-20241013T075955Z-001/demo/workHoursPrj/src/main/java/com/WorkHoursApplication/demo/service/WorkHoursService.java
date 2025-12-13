@@ -267,7 +267,6 @@ public class WorkHoursService {
         workingDay.setEntryTime(entryTime);
         workingDay.setExitTime(exitTime);
         Duration workedHours = calculateWorkedHours(entryTime, exitTime);
-        calculatePauseTime(workingDay);
         if(workingDay.getCalculatedPauseExit()>0){
             Duration tot = workedHours.minus(calculateRequiredDailyHours(LocalDate.now().getDayOfWeek()));
             workingDay.setBonusOrDebito(tot.minus(Duration.ofMinutes(calculatePauseTime(workingDay))));
