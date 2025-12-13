@@ -60,7 +60,7 @@ public class WorkHoursService {
             Duration dailyWorkedHours = calculateWorkedHours(today.getEntryTime(), today.getExitTime());
             Duration requiredHours = calculateRequiredDailyHours(today.getDate().getDayOfWeek());
             Duration bonusOrDebito = dailyWorkedHours.minus(requiredHours);
-            if(workingDay.getExitPauseTime()!=null && workingDay.getEntryPauseTime()!=null){
+            if(today.getExitPauseTime()!=null && today.getEntryPauseTime()!=null){
                 bonusOrDebito = bonusOrDebito.minus(Duration.ofMinutes(calculatePauseTime()));
             }
             today.setBonusOrDebito(bonusOrDebito);
