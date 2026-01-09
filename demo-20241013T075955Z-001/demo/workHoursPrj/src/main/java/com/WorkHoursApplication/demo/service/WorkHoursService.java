@@ -83,15 +83,16 @@ public class WorkHoursService {
         }
     }
 
-    public void registerPauseExit(LocalTime exitTime){
-        WorkingDay today = workingDayRepository.findByDate(LocalDate.now())
-                .orElse(new WorkingDay(LocalDate.now()));;
-        today.setExitPauseTime(exitTime);
-        workingDayRepository.save(today);
+    public void registerPauseExit(LocalTime exitTime) {
+            WorkingDay today = workingDayRepository.findByDate(LocalDate.now())
+                    .orElse(new WorkingDay(LocalDate.now()));
+            if(today.getEntryTime()!=null){
+            today.setExitPauseTime(exitTime);
+            workingDayRepository.save(today);
+        }
     }
 
     public void registerPauseEntry(LocalTime entryTime){
-        try {
         WorkingDay today = workingDayRepository.findByDate(LocalDate.now())
                 .orElse(new WorkingDay(LocalDate.now()));
         today.setEntryPauseTime(entryTime);
@@ -99,9 +100,6 @@ public class WorkHoursService {
             workingDayRepository.save(today);
             calculatePauseTime();
             System.out.println(today.getEntryPauseTime());
-        }
-        }catch (NullPointerException n){
-            System.out.println("Attenzione, è necessario prima badgiare l'orario di uscita della pausa pranzo!");
         }
     }
 

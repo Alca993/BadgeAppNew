@@ -13,6 +13,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,6 +24,9 @@ public class WorkHourController {
 
     @Autowired
     private WorkHoursService workHoursService;
+
+    @Autowired
+    private WorkingDayRepository workingDayRepository;
 
 
     @PostMapping("/entry")
@@ -82,13 +86,23 @@ public class WorkHourController {
     @GetMapping("/pauseExit")
     public ResponseEntity<String> registerPauseExit(@RequestParam String exitTime){
         workHoursService.registerPauseExit(LocalTime.parse(exitTime));
-        return ResponseEntity.ok("Uscita registrata.");
+        WorkingDay today = workingDayRepository.findByDate(LocalDate.now())
+                .orElse(new WorkingDay(LocalDate.now()));
+        if(today.getExitPauseTime()!=null){
+            return ResponseEntity.ok("Uscita pausa pranzo registrata.");
+        }
+        return ResponseEntity.ok("Attenzione, è obbligatorio badgiare l'orario d'ingresso della giornata lavorativa!");
     }
 
     @GetMapping("/pauseEntry")
     public ResponseEntity<String> registerPauseEntry(@RequestParam String entryTime){
         workHoursService.registerPauseEntry(LocalTime.parse(entryTime));
-        return ResponseEntity.ok("Ingresso registrato.");
+        WorkingDay today = workingDayRepository.findByDate(LocalDate.now())
+                .orElse(new WorkingDay(LocalDate.now()));
+        if(today.getEntryPauseTime()!=null) {
+            return ResponseEntity.ok("Ingresso pausa pranzo registrato.");
+        }
+        return ResponseEntity.ok("Attenzione, è necessario prima badgiare l'orario di uscita della pausa pranzo!");
     }
 
     private String formatWorkingDay(WorkingDay workingDay){
